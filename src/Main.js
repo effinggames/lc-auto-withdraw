@@ -64,11 +64,10 @@ const main = async function(){
     Logger.info('Starting script');
     try {
         await withdrawAllFunds();
+        Logger.info('Great success!');
     } catch(err) {
         Logger.error('Err:', err);
-        process.exit(1);
     }
-    Logger.info('Great success!');
 };
 
 main();
