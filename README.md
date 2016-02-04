@@ -1,7 +1,7 @@
 # lc-auto-withdrawal
 Lending Club auto withdrawal script.
 
-Useful withdrawing your available balance frequently to wind down your account. Intended to be setup with a cronjob or Heroku's scheduler.
+Useful for withdrawing your available balance frequently to wind down your account. Intended to be setup with a cronjob or Heroku's scheduler.
 
 ### Usage:
 
