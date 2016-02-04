@@ -12,6 +12,6 @@ npm start
 ```
 
 Env variables required:  
-`LENDING_CLUB_EMAIL`: Lending Club Email
+`LENDING_CLUB_EMAIL`: Lending Club Email  
 `LENDING_CLUB_PASSWORD`: Lending Club Password  
 
