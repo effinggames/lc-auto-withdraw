@@ -14,13 +14,13 @@ const Request = RequestLib.defaults({
 });
 
 /**
- * Fetches LendingClub balance and withdraws the maximum amount
+ * Fetches LendingClub balance and withdraws the maximum amount.
  */
 const withdrawAllFunds = async function() {
     Logger.info('Withdrawing LC funds');
 
     //Login request
-    const loginRSP = await Request.post({
+    await Request.post({
         url: 'https://www.lendingclub.com/account/login.action',
         form: {
             login_url: '',
@@ -28,10 +28,8 @@ const withdrawAllFunds = async function() {
             login_password: Constants.LendingClubPassword
         }
     });
-    Logger.info('LC login rsp:', loginRSP.trim().replace(/(\r\n|\n|\r)/gm, ""));
 
     const withdrawPageRSP = await Request.get('https://www.lendingclub.com/account/withdraw.action');
-    Logger.info('LC withdraw page rsp:', withdrawPageRSP.trim().replace(/(\r\n|\n|\r)/gm, ""));
 
     const $ = Cheerio.load(withdrawPageRSP);
     const availableBalanceStr = $('.field.value').text().replace('$', '');
@@ -45,13 +43,13 @@ const withdrawAllFunds = async function() {
     Logger.info(`Balance: ${availableBalance}, Token Name: ${tokenName}, Token Value: ${tokenValue}`);
 
     if (availableBalance <= 0) {
-        Logger.info('No available funds to withdraw!');
+        Logger.info('No available funds to withdraw');
         return;
     } else {
         Logger.info(`Withdrawing funds: ${availableBalance}`);
     }
 
-    const withdrawRSP = await Request.post({
+    await Request.post({
         url: 'https://www.lendingclub.com/account/submitWithdrawFunds.action',
         form: {
             'struts.token.name': tokenName,
@@ -60,8 +58,6 @@ const withdrawAllFunds = async function() {
             guid: ''
         }
     });
-
-    Logger.info('LC withdraw rsp:', withdrawRSP.trim().replace(/(\r\n|\n|\r)/gm, ""));
 };
 
 const main = async function(){
