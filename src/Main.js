@@ -38,18 +38,25 @@ const withdrawAllFunds = async function() {
     const availableBalance = Number.parseFloat(availableBalanceStr);
     const tokenName = $('[name="struts.token.name"]').attr('value');
     const tokenValue = $('[name=token]').attr('value');
-    Assert.ok(!Number.isNaN(availableBalance), 'Invalid availableBalance found');
+    Assert.ok(!Number.isNaN(availableBalance), `Invalid availableBalance found: ${availableBalanceStr}`);
     Assert.ok(tokenName);
     Assert.ok(tokenValue);
 
-    console.log(`Balance: ${availableBalance}, Token Name: ${tokenName}, Token Value: ${tokenValue}`);
+    Logger.info(`Balance: ${availableBalance}, Token Name: ${tokenName}, Token Value: ${tokenValue}`);
+
+    if (availableBalance <= 0) {
+        Logger.info('No available funds to withdraw!');
+        return;
+    } else {
+        Logger.info(`Withdrawing funds: ${availableBalance}`);
+    }
 
     const withdrawRSP = await Request.post({
         url: 'https://www.lendingclub.com/account/submitWithdrawFunds.action',
         form: {
             'struts.token.name': tokenName,
             token: tokenValue,
-            amount: 1,
+            amount: availableBalance,
             guid: ''
         }
     });

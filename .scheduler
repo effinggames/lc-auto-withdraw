@@ -5,9 +5,9 @@
 MY_PATH=`dirname "$0"`
 echo Checking scheduler
 
-# Fetch statements every 15th of the month:
-if [ "$(date +%-d)" = 15 ]; then
-   npm start && curl -L http://pshmn.com/Wq1n2T
+# Withdraw balance every 7 days:
+if [ "$(( $(date +%-d) % 7 ))" = 0 ]; then
+   npm start && curl -L http://pshmn.com/WOGnfa
 fi
 
 echo Finished checking
