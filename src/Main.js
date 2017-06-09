@@ -10,12 +10,12 @@ const By = Webdriver.By;
 const until = Webdriver.until;
 
 const chromeOptions = new Chrome.Options();
+
 if (process.env.GOOGLE_CHROME_BIN) {
     Logger.info('Custom chrome path:', process.env.GOOGLE_CHROME_BIN);
     chromeOptions.setChromeBinaryPath(process.env.GOOGLE_CHROME_BIN);
     chromeOptions.addArguments('headless', 'disable-gpu', 'no-sandbox');
 }
-
 
 /**
  * Fetches LendingClub balance and withdraws the maximum amount.
