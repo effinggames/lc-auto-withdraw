@@ -1,17 +1,21 @@
 import 'babel-polyfill'
+import 'chromedriver';
 import * as Constants from './Constants';
 import * as Logger from 'winston2';
-import * as RequestLib from 'request-promise';
-import * as Cheerio from 'cheerio';
 import * as Assert from 'assert';
+import * as Webdriver from 'selenium-webdriver';
+import * as Chrome from 'selenium-webdriver/chrome';
 
-const Request = RequestLib.defaults({
-    headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36'
-    },
-    followAllRedirects: true,
-    jar: true
-});
+const By = Webdriver.By;
+const until = Webdriver.until;
+
+const chromeOptions = new Chrome.Options();
+if (process.env.GOOGLE_CHROME_BIN) {
+    Logger.info('Custom chrome path:', process.env.GOOGLE_CHROME_BIN);
+    chromeOptions.setChromeBinaryPath(process.env.GOOGLE_CHROME_BIN);
+    chromeOptions.addArguments('headless', 'disable-gpu', 'no-sandbox');
+}
+
 
 /**
  * Fetches LendingClub balance and withdraws the maximum amount.
@@ -19,45 +23,28 @@ const Request = RequestLib.defaults({
 const withdrawAllFunds = async function() {
     Logger.info('Withdrawing LC funds');
 
-    //Login request
-    await Request.post({
-        url: 'https://www.lendingclub.com/account/login.action',
-        form: {
-            login_url: '',
-            login_email: Constants.LendingClubEmail,
-            login_password: Constants.LendingClubPassword
-        }
-    });
+    const driver = new Webdriver.Builder()
+        .withCapabilities(chromeOptions.toCapabilities())
+        .build();
+    driver.get('https://www.lendingclub.com/auth/login');
+    driver.findElement(By.name('email')).sendKeys(Constants.LendingClubEmail);
+    driver.findElement(By.name('password')).sendKeys(Constants.LendingClubPassword);
+    driver.findElement(By.xpath("//button[@type='submit']")).click();
+    await driver.wait(until.titleContains('Account Summary'), 5000);
 
-    const withdrawPageRSP = await Request.get('https://www.lendingclub.com/account/withdraw.action');
+    driver.get('https://www.lendingclub.com/investor/account/1/transfer');
+    driver.findElement(By.xpath("//ul[contains(@class, 'transferSelect')]/descendant::li[position()=3]")).click();
+    const availableBalanceStr = await driver.findElement(By.xpath("//span[contains(@class, 'available')]")).getText();
+    const availableBalance = availableBalanceStr.replace('$', '');
+    Logger.info('Available balance:', availableBalance);
 
-    const $ = Cheerio.load(withdrawPageRSP);
-    const availableBalanceStr = $('.field.value').text().replace('$', '');
-    const availableBalance = Number.parseFloat(availableBalanceStr);
-    const tokenName = $('[name="struts.token.name"]').attr('value');
-    const tokenValue = $('[name=token]').attr('value');
-    Assert.ok(!Number.isNaN(availableBalance), `Invalid availableBalance found: ${availableBalanceStr}`);
-    Assert.ok(tokenName);
-    Assert.ok(tokenValue);
+    driver.findElement(By.xpath("//input[@data-aid='withdrawAmount']")).sendKeys(availableBalance);
+    driver.findElement(By.xpath("//button[@data-aid='withdrawSubmit']")).click();
+    driver.findElement(By.id('transferModalConfirm')).click();
+    await driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'pendingRow')]")), 5000);
 
-    Logger.info(`Balance: ${availableBalance}, Token Name: ${tokenName}, Token Value: ${tokenValue}`);
-
-    if (availableBalance <= 0) {
-        Logger.info('No available funds to withdraw');
-        return;
-    } else {
-        Logger.info(`Withdrawing funds: ${availableBalance}`);
-    }
-
-    await Request.post({
-        url: 'https://www.lendingclub.com/account/submitWithdrawFunds.action',
-        form: {
-            'struts.token.name': tokenName,
-            token: tokenValue,
-            amount: availableBalance,
-            guid: ''
-        }
-    });
+    Logger.info('Successful withdraw:', availableBalance);
+    driver.quit();
 };
 
 const main = async function(){
