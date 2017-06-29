@@ -46,7 +46,7 @@ const withdrawAllFunds = async function() {
 
         Logger.info('Successful withdraw:', availableBalance);
     } else {
-        Logger.info('Nothing to withdraw!");
+        Logger.info('Nothing to withdraw!');
     }
     driver.quit();
 };
