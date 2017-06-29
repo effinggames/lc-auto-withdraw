@@ -37,13 +37,17 @@ const withdrawAllFunds = async function() {
     const availableBalanceStr = await driver.findElement(By.xpath("//span[contains(@class, 'available')]")).getText();
     const availableBalance = availableBalanceStr.replace('$', '');
     Logger.info('Available balance:', availableBalance);
+    
+    if (parseFloat(availableBalance) > 0) {
+        driver.findElement(By.xpath("//input[@data-aid='withdrawAmount']")).sendKeys(availableBalance);
+        driver.findElement(By.xpath("//button[@data-aid='withdrawSubmit']")).click();
+        driver.findElement(By.id('transferModalConfirm')).click();
+        await driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'pendingRow')]")), 5000);
 
-    driver.findElement(By.xpath("//input[@data-aid='withdrawAmount']")).sendKeys(availableBalance);
-    driver.findElement(By.xpath("//button[@data-aid='withdrawSubmit']")).click();
-    driver.findElement(By.id('transferModalConfirm')).click();
-    await driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'pendingRow')]")), 5000);
-
-    Logger.info('Successful withdraw:', availableBalance);
+        Logger.info('Successful withdraw:', availableBalance);
+    } else {
+        Logger.info('Nothing to withdraw!");
+    }
     driver.quit();
 };
 
