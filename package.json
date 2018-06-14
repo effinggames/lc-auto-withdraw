@@ -4,7 +4,7 @@
   "description": "Lending Club auto withdrawal script",
   "main": "src/Main.js",
   "scripts": {
-    "start": "npm run build && node ./target/Main.js",
+    "start": "node ./target/Main.js",
     "build": "babel src --source-maps inline --out-dir target",
     "watch": "babel src --source-maps inline --watch --out-dir target",
     "test": "echo \"Error: no test specified\" && exit 1"
